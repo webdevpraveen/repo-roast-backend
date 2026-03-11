@@ -1,19 +1,24 @@
-const Anthropic = require('@anthropic-ai/sdk');
-
-const client = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY
-});
+const axios = require('axios');
 
 async function generateRoast(repoData) {
     const prompt = buildPrompt(repoData);
 
-    const message = await client.messages.create({
-        model: 'claude-opus-4-5',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }]
-    });
+    const response = await axios.post(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+            model: 'llama-3.3-70b-versatile',
+            max_tokens: 1024,
+            messages: [{ role: 'user', content: prompt }]
+        },
+        {
+            headers: {
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
 
-    return message.content[0].text;
+    return response.data.choices[0].message.content;
 }
 
 function buildPrompt(data) {
